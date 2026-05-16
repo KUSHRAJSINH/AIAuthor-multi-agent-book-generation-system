@@ -429,27 +429,20 @@ class AssemblerAgent:
 
         story = []
 
-        def add_section(section_title: str, content: str) -> None:
-            story.append(Paragraph(section_title, section_style))
-            story.append(HRFlowable(width="100%", thickness=0.5,
-                                    color=colors.HexColor("#CCCCEE"), spaceAfter=8))
-            story.append(Spacer(1, 0.1 * inch))
-            if content.strip():
-                for para in content.split("\n\n"):
-                    if para.strip():
-                        story.append(Paragraph(para.strip(), body_style))
-            story.append(PageBreak())
+        import html
+        def _esc(t: str) -> str:
+            return html.escape(t) if t else ""
 
         # Title Page
         story.append(Spacer(1, 1.5 * inch))
-        story.append(Paragraph(title, title_style))
+        story.append(Paragraph(_esc(title), title_style))
         if subtitle:
-            story.append(Paragraph(subtitle, subtitle_style))
+            story.append(Paragraph(_esc(subtitle), subtitle_style))
         story.append(Spacer(1, 0.5 * inch))
-        story.append(Paragraph(f"by {author_name}", author_style))
+        story.append(Paragraph(_esc(f"by {author_name}"), author_style))
         story.append(Spacer(1, 0.25 * inch))
         year = datetime.now().year
-        story.append(Paragraph(f"© {year} {author_name}", author_style))
+        story.append(Paragraph(_esc(f"© {year} {author_name}"), author_style))
         story.append(PageBreak())
 
         # TOC
@@ -479,13 +472,24 @@ class AssemblerAgent:
         story.append(PageBreak())
 
         # Front Matter
+        def add_section(section_title: str, content: str) -> None:
+            story.append(Paragraph(_esc(section_title), section_style))
+            story.append(HRFlowable(width="100%", thickness=0.5,
+                                    color=colors.HexColor("#CCCCEE"), spaceAfter=8))
+            story.append(Spacer(1, 0.1 * inch))
+            if content.strip():
+                for para in content.split("\n\n"):
+                    if para.strip():
+                        story.append(Paragraph(_esc(para.strip()), body_style))
+            story.append(PageBreak())
+
         add_section("Foreword", foreword)
         add_section("Preface", preface)
 
         # Chapters
         for ch in chapters:
-            story.append(Paragraph(f"Chapter {ch['number']}", chapter_title_style))
-            story.append(Paragraph(ch["title"], section_style))
+            story.append(Paragraph(_esc(f"Chapter {ch['number']}"), chapter_title_style))
+            story.append(Paragraph(_esc(ch["title"]), section_style))
             story.append(HRFlowable(width="100%", thickness=0.5,
                                     color=colors.HexColor("#CCCCEE"), spaceAfter=8))
             story.append(Spacer(1, 0.15 * inch))
@@ -493,7 +497,7 @@ class AssemblerAgent:
             if content.strip():
                 for para in content.split("\n\n"):
                     if para.strip():
-                        story.append(Paragraph(para.strip(), body_style))
+                        story.append(Paragraph(_esc(para.strip()), body_style))
             story.append(PageBreak())
 
         # Back Matter
@@ -506,8 +510,8 @@ class AssemblerAgent:
         story.append(Spacer(1, 0.1 * inch))
         if glossary:
             for entry in sorted(glossary, key=lambda x: x.get("term", "")):
-                story.append(Paragraph(entry.get("term", ""), glossary_term_style))
-                story.append(Paragraph(entry.get("definition", ""), glossary_def_style))
+                story.append(Paragraph(_esc(entry.get("term", "")), glossary_term_style))
+                story.append(Paragraph(_esc(entry.get("definition", "")), glossary_def_style))
         story.append(PageBreak())
 
         # About the Author
